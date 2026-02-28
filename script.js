@@ -4,6 +4,7 @@
 
 let activityData = {};
 let membersData = {};
+let activityChart = null;
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -158,7 +159,7 @@ function renderMembers(summary) {
         
         html += `
             <tr class="member-row" data-user-id="${userId}">
-                <td><strong>${data.name}</strong></td>
+                <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link"><strong>${data.name}</strong></a></td>
                 <td>${data.last_seen_relative}</td>
                 <td>${data.days_active}</td>
                 <td><span class="status ${statusClass}">${statusText}</span></td>
@@ -194,7 +195,7 @@ function updateStats() {
 }
 
 // -----------------------------------
-// ACTIVITY DISPLAY
+// ACTIVITY DISPLAY WITH GRAPH
 // -----------------------------------
 
 function showActivity(userId, name) {
@@ -215,10 +216,102 @@ function showActivity(userId, name) {
         }
     }
     
-    memberActivity = memberActivity.reverse();
+    memberActivity.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
-    let html = '';
+    renderActivityChart(memberActivity);
+    renderActivityTimeline(memberActivity);
+    
+    document.getElementById('memberName').textContent = name;
+    document.getElementById('activityDetail').classList.remove('hidden');
+}
+
+function renderActivityChart(memberActivity) {
+    const labels = [];
+    const data = [];
+    
+    if (memberActivity.length === 0) {
+        document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available</p>';
+        return;
+    }
+    
     for (const activity of memberActivity) {
+        const time = new Date(activity.timestamp);
+        labels.push(time.toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}));
+        
+        data.push(activity.last_action_timestamp > 0 ? 1 : 0);
+    }
+    
+    const ctx = document.getElementById('activityChart');
+    
+    if (activityChart) {
+        activityChart.destroy();
+    }
+    
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Online Status',
+                data: data,
+                borderColor: '#ff4500',
+                backgroundColor: 'rgba(255, 69, 0, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ff8c00',
+                pointBorderColor: '#ff4500',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                segment: {
+                    borderColor: (ctx) => ctx.p0DataIndex === ctx.p1DataIndex - 1 ? '#ff4500' : '#666'
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ff8c00'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    ticks: {
+                        color: '#ff8c00',
+                        stepSize: 1,
+                        callback: function(value) {
+                            return value === 1 ? 'Online' : 'Offline';
+                        }
+                    },
+                    grid: {
+                        color: '#333'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#ff8c00',
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        color: '#333'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderActivityTimeline(memberActivity) {
+    let html = '';
+    
+    for (const activity of memberActivity.reverse()) {
         const time = new Date(activity.timestamp);
         const timeStr = time.toLocaleString();
         
@@ -231,9 +324,7 @@ function showActivity(userId, name) {
         `;
     }
     
-    document.getElementById('memberName').textContent = name;
     document.getElementById('timeline').innerHTML = html || '<div style="color: #888; padding: 20px;">No activity data</div>';
-    document.getElementById('activityDetail').classList.remove('hidden');
 }
 
 // -----------------------------------
@@ -242,6 +333,10 @@ function showActivity(userId, name) {
 
 function closeActivity() {
     document.getElementById('activityDetail').classList.add('hidden');
+    if (activityChart) {
+        activityChart.destroy();
+        activityChart = null;
+    }
 }
 
 // -----------------------------------
