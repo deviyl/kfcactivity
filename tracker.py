@@ -79,6 +79,8 @@ class TornActivityTracker:
     # -----------------------------------
     
     def log_activity_snapshot(self):
+        import time
+        
         data = self.fetch_faction_data()
         
         if not data or "members" not in data:
@@ -95,7 +97,10 @@ class TornActivityTracker:
         
         members_data = self.load_json(self.members_file)
         
-        for user_id, member_info in data["members"].items():
+        member_list = list(data["members"].items())
+        total_members = len(member_list)
+        
+        for index, (user_id, member_info) in enumerate(member_list):
             user_id_str = str(int(user_id))
             
             name = member_info.get("name", "Unknown")
@@ -118,6 +123,13 @@ class TornActivityTracker:
                 "last_action_relative": last_action_relative,
                 "status": status
             }
+            
+            # -----------------------------------
+            # RATE LIMITING DELAY
+            # -----------------------------------
+            
+            if index < total_members - 1:
+                time.sleep(3)
         
         # -----------------------------------
         # DATA PERSISTENCE
