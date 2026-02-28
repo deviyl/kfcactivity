@@ -105,7 +105,7 @@ function getActivitySummary(days) {
 
 function renderStats(summary, snapshots) {
     const lastPoll = snapshots[snapshots.length - 1].timestamp;
-    const lastPollTime = new Date(lastPoll).toLocaleString();
+    const lastPollTime = new Date(lastPoll).toLocaleString('en-GB', { timeZone: 'UTC' });
     
     const active24h = Object.values(summary).filter(m => {
         const minutesAgo = (Date.now() - m.last_seen_timestamp * 1000) / 60000;
@@ -131,7 +131,7 @@ function renderStats(summary, snapshots) {
         </div>
         <div class="faction-card">
             <div class="faction-name">Last Poll</div>
-            <div class="score" style="font-size: 0.9em;">${new Date(lastPoll).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+            <div class="score" style="font-size: 0.9em;">${new Date(lastPoll).toLocaleTimeString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute:'2-digit', hour12: false })}</div>
         </div>
     `;
     
@@ -234,11 +234,29 @@ function renderActivityChart(memberActivity) {
         return;
     }
     
-    for (const activity of memberActivity) {
-        const time = new Date(activity.timestamp);
-        labels.push(time.toLocaleString([], {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}));
+    // -----------------------------------
+    // ONLINE/OFFLINE PER POLL WINDOW
+    // -----------------------------------
+    
+    for (let i = 0; i < memberActivity.length; i++) {
+        const activity = memberActivity[i];
+        const pollTime = new Date(activity.timestamp);
+        const lastActionTime = new Date(activity.last_action_timestamp * 1000);
         
-        data.push(activity.last_action_timestamp > 0 ? 1 : 0);
+        labels.push(pollTime.toLocaleString('en-GB', { 
+            timeZone: 'UTC',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }));
+        
+        // User is online if they logged in within ~15 minutes of this poll
+        const timeDiffMinutes = (pollTime - lastActionTime) / (1000 * 60);
+        const isOnline = timeDiffMinutes >= 0 && timeDiffMinutes <= 20;
+        
+        data.push(isOnline ? 1 : 0);
     }
     
     const ctx = document.getElementById('activityChart');
@@ -262,10 +280,7 @@ function renderActivityChart(memberActivity) {
                 pointBackgroundColor: '#ff8c00',
                 pointBorderColor: '#ff4500',
                 pointRadius: 4,
-                pointHoverRadius: 6,
-                segment: {
-                    borderColor: (ctx) => ctx.p0DataIndex === ctx.p1DataIndex - 1 ? '#ff4500' : '#666'
-                }
+                pointHoverRadius: 6
             }]
         },
         options: {
@@ -313,11 +328,20 @@ function renderActivityTimeline(memberActivity) {
     
     for (const activity of memberActivity.reverse()) {
         const time = new Date(activity.timestamp);
-        const timeStr = time.toLocaleString();
+        const utcTime = time.toLocaleString('en-GB', {
+            timeZone: 'UTC',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
         
         html += `
             <div class="activity-entry">
-                <div class="activity-time">${timeStr}</div>
+                <div class="activity-time">${utcTime} UTC</div>
                 <div class="activity-relative">Last seen: ${activity.last_action_relative}</div>
                 <div class="activity-status">Status: ${activity.status}</div>
             </div>
