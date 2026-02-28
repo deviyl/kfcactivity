@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torn Faction Activity Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="container">
+            <h1>⚔️ Faction Activity</h1>
+            
+            <div class="controls">
+                <label>Time Range:</label>
+                <select id="timeRange" onchange="updateDashboard()">
+                    <option value="1">Last 24 Hours</option>
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="14">Last 14 Days</option>
+                    <option value="30">Last 30 Days</option>
+                </select>
+                
+                <label style="margin-left: 20px;">Search:</label>
+                <input type="text" id="searchBox" placeholder="Filter by name..." onkeyup="filterMembers()">
+            </div>
+            
+            <div class="summary" id="summary">
+                <div class="faction-card">
+                    <div class="faction-name">Total Members</div>
+                    <div class="score">-</div>
+                </div>
+                <div class="faction-card">
+                    <div class="faction-name">Active (24h)</div>
+                    <div class="score">-</div>
+                </div>
+                <div class="faction-card">
+                    <div class="faction-name">Data Logged</div>
+                    <div class="score">-</div>
+                </div>
+                <div class="faction-card">
+                    <div class="faction-name">Last Poll</div>
+                    <div class="score" style="font-size: 0.9em;">-</div>
+                </div>
+            </div>
+            
+            <h2 style="margin: 25px 0 15px 0; color: #ff8c00; font-size: 1.1em;">Members</h2>
+            <table class="deadline-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Last Seen</th>
+                        <th>Days Active</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTable">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #888; padding: 40px;">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div id="activityDetail" class="activity-detail hidden">
+                <button class="close-btn" onclick="closeActivity()">✕</button>
+                <h4>Activity Timeline for <span id="memberName"></span></h4>
+                <div class="activity-timeline" id="timeline"></div>
+            </div>
+            
+            <div class="last-updated" id="lastUpdated">
+                Data last updated: Loading...
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
