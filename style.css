@@ -19,8 +19,8 @@ body {
     padding: 15px;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(255, 69, 0, 0.2);
-    width: 95%;
-    max-width: 550px;
+    width: 80%;
+    max-width: 1400px;
     border: 1px solid #441111;
     position: relative;
     box-sizing: border-box;
@@ -127,7 +127,7 @@ button:hover {
 
 .controls input {
     flex: 1;
-    min-width: 150px;
+    min-width: 200px;
 }
 
 .summary {
@@ -186,6 +186,18 @@ button:hover {
 
 .member-row {
     transition: background 0.3s;
+}
+
+.member-link {
+    color: #ff8c00;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.member-link:hover {
+    color: #ff4500;
+    text-decoration: underline;
 }
 
 .status {
@@ -258,6 +270,16 @@ button:hover {
 
 .close-btn:hover {
     color: #ff8c00;
+}
+
+.activity-chart-container {
+    background: #0d0000;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #441111;
+    margin-bottom: 20px;
+    position: relative;
+    height: 300px;
 }
 
 .activity-timeline {
