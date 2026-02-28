@@ -37,6 +37,30 @@ async function initializeDashboard() {
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
 // -----------------------------------
+// UTILITY - FORMAT UTC TIME
+// -----------------------------------
+
+function formatUTC(date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function formatUTCShort(date) {
+    const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    
+    return `${month} ${day} ${hours}:${minutes}`;
+}
+
+// -----------------------------------
 // DASHBOARD RENDERING
 // -----------------------------------
 
@@ -83,8 +107,9 @@ function getActivitySummary(days) {
             
             for (const activity of memberActivity) {
                 if (activity.last_action_timestamp > 0) {
-                    const date = new Date(activity.last_action_timestamp * 1000).toLocaleDateString();
-                    activeDates.add(date);
+                    const date = new Date(activity.last_action_timestamp * 1000);
+                    const dateStr = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+                    activeDates.add(dateStr);
                 }
             }
             
@@ -104,11 +129,13 @@ function getActivitySummary(days) {
 }
 
 function renderStats(summary, snapshots) {
-    const lastPoll = snapshots[snapshots.length - 1].timestamp;
-    const lastPollTime = new Date(lastPoll).toLocaleString('en-GB', { timeZone: 'UTC' });
+    const lastPoll = new Date(snapshots[snapshots.length - 1].timestamp);
+    const lastPollTime = formatUTC(lastPoll);
     
     const active24h = Object.values(summary).filter(m => {
-        const minutesAgo = (Date.now() - m.last_seen_timestamp * 1000) / 60000;
+        const now = Date.now();
+        const lastActionMs = m.last_seen_timestamp * 1000;
+        const minutesAgo = (now - lastActionMs) / 60000;
         return minutesAgo < 1440;
     }).length;
     
@@ -131,11 +158,11 @@ function renderStats(summary, snapshots) {
         </div>
         <div class="faction-card">
             <div class="faction-name">Last Poll</div>
-            <div class="score" style="font-size: 0.9em;">${new Date(lastPoll).toLocaleTimeString('en-GB', { timeZone: 'UTC', hour: '2-digit', minute:'2-digit', hour12: false })}</div>
+            <div class="score" style="font-size: 0.9em;">${formatUTCShort(lastPoll)}</div>
         </div>
     `;
     
-    document.getElementById('lastUpdated').textContent = `Data last updated: ${lastPollTime}`;
+    document.getElementById('lastUpdated').textContent = `Data last updated: ${lastPollTime} UTC`;
 }
 
 function renderMembers(summary) {
@@ -144,7 +171,9 @@ function renderMembers(summary) {
     let html = '';
     
     for (const [userId, data] of sorted) {
-        const minutesAgo = (Date.now() - data.last_seen_timestamp * 1000) / 60000;
+        const now = Date.now();
+        const lastActionMs = data.last_seen_timestamp * 1000;
+        const minutesAgo = (now - lastActionMs) / 60000;
         
         let statusClass = 'status-inactive';
         let statusText = 'Offline';
@@ -240,21 +269,16 @@ function renderActivityChart(memberActivity) {
     
     for (let i = 0; i < memberActivity.length; i++) {
         const activity = memberActivity[i];
-        const pollTime = new Date(activity.timestamp);
+        const pollTimeStr = activity.timestamp;
+        const pollTime = new Date(pollTimeStr);
         
         // Round poll time DOWN to nearest 15-minute interval
         const roundedTime = roundDownTo15Minutes(pollTime);
         
+        // Convert Unix timestamp to Date (no timezone conversion needed)
         const lastActionTime = new Date(activity.last_action_timestamp * 1000);
         
-        labels.push(roundedTime.toLocaleString('en-GB', { 
-            timeZone: 'UTC',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        }));
+        labels.push(formatUTCShort(roundedTime));
         
         // User is online if they logged in within ~15 minutes of this poll
         const timeDiffMinutes = (pollTime - lastActionTime) / (1000 * 60);
@@ -340,17 +364,8 @@ function renderActivityTimeline(memberActivity) {
     let html = '';
     
     for (const activity of memberActivity.reverse()) {
-        const time = new Date(activity.timestamp);
-        const utcTime = time.toLocaleString('en-GB', {
-            timeZone: 'UTC',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
+        const pollTime = new Date(activity.timestamp);
+        const utcTime = formatUTC(pollTime);
         
         html += `
             <div class="activity-entry">
