@@ -241,9 +241,13 @@ function renderActivityChart(memberActivity) {
     for (let i = 0; i < memberActivity.length; i++) {
         const activity = memberActivity[i];
         const pollTime = new Date(activity.timestamp);
+        
+        // Round poll time DOWN to nearest 15-minute interval
+        const roundedTime = roundDownTo15Minutes(pollTime);
+        
         const lastActionTime = new Date(activity.last_action_timestamp * 1000);
         
-        labels.push(pollTime.toLocaleString('en-GB', { 
+        labels.push(roundedTime.toLocaleString('en-GB', { 
             timeZone: 'UTC',
             month: 'short',
             day: 'numeric',
@@ -321,6 +325,15 @@ function renderActivityChart(memberActivity) {
             }
         }
     });
+}
+
+// -----------------------------------
+// TIMESTAMP ROUNDING
+// -----------------------------------
+
+function roundDownTo15Minutes(date) {
+    const ms = 1000 * 60 * 15;
+    return new Date(Math.floor(date.getTime() / ms) * ms);
 }
 
 function renderActivityTimeline(memberActivity) {
