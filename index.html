@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torn Faction Activity Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div class="main-wrapper">
@@ -20,7 +21,6 @@
                     <option value="30">Last 30 Days</option>
                 </select>
                 
-                <label style="margin-left: 20px;">Search:</label>
                 <input type="text" id="searchBox" placeholder="Filter by name..." onkeyup="filterMembers()">
             </div>
             
@@ -64,6 +64,9 @@
             <div id="activityDetail" class="activity-detail hidden">
                 <button class="close-btn" onclick="closeActivity()">✕</button>
                 <h4>Activity Timeline for <span id="memberName"></span></h4>
+                <div class="activity-chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
                 <div class="activity-timeline" id="timeline"></div>
             </div>
             
