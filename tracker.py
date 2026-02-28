@@ -8,8 +8,8 @@ import os
 import sys
 
 # -----------------------------------
-// CONFIGURATION FROM ENVIRONMENT
-// -----------------------------------
+# CONFIGURATION FROM ENVIRONMENT
+# -----------------------------------
 
 api_key = os.getenv("TORN_API_KEY")
 faction_id = os.getenv("FACTION_ID")
@@ -25,8 +25,8 @@ except ValueError:
     sys.exit(1)
 
 # -----------------------------------
-// CLASS DEFINITION
-// -----------------------------------
+# CLASS DEFINITION
+# -----------------------------------
 
 class TornActivityTracker:
     
@@ -42,8 +42,8 @@ class TornActivityTracker:
         self.members_file = self.data_dir / "members.json"
     
     # -----------------------------------
-    // JSON UTILITY METHODS
-    // -----------------------------------
+    # JSON UTILITY METHODS
+    # -----------------------------------
     
     def load_json(self, filepath):
         if not filepath.exists():
@@ -60,8 +60,8 @@ class TornActivityTracker:
             json.dump(data, f, indent=2)
     
     # -----------------------------------
-    // API METHODS
-    // -----------------------------------
+    # API METHODS
+    # -----------------------------------
     
     def fetch_faction_data(self):
         url = f"{self.base_url}/faction/{self.faction_id}?selections=basic&key={self.api_key}"
@@ -75,8 +75,8 @@ class TornActivityTracker:
             return None
     
     # -----------------------------------
-    // ACTIVITY LOGGING
-    // -----------------------------------
+    # ACTIVITY LOGGING
+    # -----------------------------------
     
     def log_activity_snapshot(self):
         data = self.fetch_faction_data()
@@ -120,8 +120,8 @@ class TornActivityTracker:
             }
         
         # -----------------------------------
-        // DATA PERSISTENCE
-        // -----------------------------------
+        # DATA PERSISTENCE
+        # -----------------------------------
         
         if "snapshots" not in activity_log:
             activity_log["snapshots"] = []
@@ -139,8 +139,8 @@ class TornActivityTracker:
         return True
 
 # -----------------------------------
-// MAIN EXECUTION
-// -----------------------------------
+# MAIN EXECUTION
+# -----------------------------------
 
 if __name__ == "__main__":
     tracker = TornActivityTracker(api_key, faction_id)
