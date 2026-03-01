@@ -5,6 +5,7 @@
 let activityData = {};
 let membersData = {};
 let activityChart = null;
+let currentDaysRange = 1;
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -77,8 +78,7 @@ function renderDashboard() {
         return;
     }
     
-    const days = parseInt(document.getElementById('timeRange').value);
-    const summary = getActivitySummary(days);
+    const summary = getActivitySummary(currentDaysRange);
     
     renderStats(summary, snapshots);
     renderMembers(summary);
@@ -234,7 +234,7 @@ function updateStats() {
 
 function showActivity(userId, name) {
     const snapshots = activityData.snapshots || [];
-    const daysRange = parseInt(document.getElementById('timeRange').value);
+    const daysRange = currentDaysRange;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysRange);
     
@@ -255,6 +255,7 @@ function showActivity(userId, name) {
     
     renderActivityChart(memberActivity);
     renderActivityTimeline(memberActivity);
+    renderDateRangeInput();
     
     document.getElementById('memberName').textContent = name;
     document.getElementById('activityDetail').classList.remove('hidden');
@@ -270,7 +271,7 @@ function renderActivityChart(memberActivity) {
     }
     
     // -----------------------------------
-    // ONLINE/OFFLINE PER POLL WINDOW
+    // BUILD 15-MIN INTERVALS
     // -----------------------------------
     
     for (let i = 0; i < memberActivity.length; i++) {
@@ -313,7 +314,8 @@ function renderActivityChart(memberActivity) {
                 pointBackgroundColor: '#ff8c00',
                 pointBorderColor: '#ff4500',
                 pointRadius: 4,
-                pointHoverRadius: 6
+                pointHoverRadius: 6,
+                spanGaps: false
             }]
         },
         options: {
@@ -370,7 +372,7 @@ function renderActivityTimeline(memberActivity) {
         <div class="timeline-header" onclick="toggleTimeline()">
             <span style="color: #ff8c00; cursor: pointer; font-weight: bold;">📋 Poll Details (${memberActivity.length} snapshots)</span>
         </div>
-        <div class="timeline-content" id="timelineContent">
+        <div class="timeline-content" id="timelineContent" style="display: none;">
     `;
     
     for (const activity of memberActivity.reverse()) {
@@ -392,6 +394,57 @@ function renderActivityTimeline(memberActivity) {
     html += `</div>`;
     
     document.getElementById('timeline').innerHTML = html;
+}
+
+function renderDateRangeInput() {
+    let html = `
+        <div class="date-range-input-container">
+            <label for="daysInput">Load data for past </label>
+            <input type="number" id="daysInput" min="1" max="60" value="${currentDaysRange}" placeholder="1">
+            <label for="daysInput"> days</label>
+            <button onclick="loadCustomDateRange()">Load Data</button>
+        </div>
+    `;
+    
+    document.getElementById('dateRangeContainer').innerHTML = html;
+}
+
+function loadCustomDateRange() {
+    const input = document.getElementById('daysInput').value;
+    const days = parseInt(input);
+    
+    if (isNaN(days) || days < 1) {
+        alert('Please enter a valid number of days');
+        return;
+    }
+    
+    currentDaysRange = days;
+    
+    const snapshots = activityData.snapshots || [];
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    let memberActivity = [];
+    
+    for (const snapshot of snapshots) {
+        const snapshotDate = parseUTC(snapshot.timestamp);
+        if (snapshotDate < cutoffDate) continue;
+        
+        const userId = Object.keys(document.getElementById('memberName').textContent).length > 0 ? 
+            document.getElementById('activityDetail').getAttribute('data-user-id') : null;
+        
+        if (snapshot.members[userId]) {
+            memberActivity.push({
+                timestamp: snapshot.timestamp,
+                ...snapshot.members[userId]
+            });
+        }
+    }
+    
+    memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
+    
+    renderActivityChart(memberActivity);
+    renderActivityTimeline(memberActivity);
 }
 
 function toggleTimeline() {
@@ -423,14 +476,6 @@ function filterMembers() {
         const name = row.querySelector('td').textContent.toLowerCase();
         row.style.display = name.includes(query) ? '' : 'none';
     });
-}
-
-// -----------------------------------
-// DASHBOARD UPDATE
-// -----------------------------------
-
-function updateDashboard() {
-    renderDashboard();
 }
 
 // -----------------------------------
