@@ -6,6 +6,7 @@ let activityData = {};
 let membersData = {};
 let activityChart = null;
 let currentDaysRange = 1;
+let currentUserId = null;
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -28,6 +29,7 @@ async function initializeDashboard() {
             console.warn('No members data found');
         }
         
+        updateFactionName();
         renderDashboard();
     } catch (error) {
         console.error('Error loading data:', error);
@@ -36,6 +38,15 @@ async function initializeDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+// -----------------------------------
+// FACTION NAME DISPLAY
+// -----------------------------------
+
+function updateFactionName() {
+    const factionName = activityData.faction_name || "Faction";
+    document.querySelector('h1').textContent = `⚔️ ${factionName} Activity Tracker`;
+}
 
 // -----------------------------------
 // UTILITY - FORMAT UTC TIME
@@ -78,17 +89,14 @@ function renderDashboard() {
         return;
     }
     
-    const summary = getActivitySummary(currentDaysRange);
+    const summary = getActivitySummary();
     
     renderStats(summary, snapshots);
     renderMembers(summary);
 }
 
-function getActivitySummary(days) {
+function getActivitySummary() {
     const snapshots = activityData.snapshots || [];
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    
     const summary = {};
     
     for (const userId in membersData) {
@@ -96,8 +104,6 @@ function getActivitySummary(days) {
         const memberActivity = [];
         
         for (const snapshot of snapshots) {
-            const snapshotDate = parseUTC(snapshot.timestamp);
-            if (snapshotDate < cutoffDate) continue;
             if (snapshot.members[userId]) {
                 memberActivity.push({
                     timestamp: snapshot.timestamp,
@@ -109,6 +115,10 @@ function getActivitySummary(days) {
         if (memberActivity.length > 0) {
             const mostRecent = memberActivity[memberActivity.length - 1];
             const activeDates = new Set();
+            
+            // -----------------------------------
+            // DAYS ACTIVE = DISTINCT DAYS IN DATA
+            // -----------------------------------
             
             for (const activity of memberActivity) {
                 if (activity.last_action_timestamp > 0) {
@@ -233,6 +243,12 @@ function updateStats() {
 // -----------------------------------
 
 function showActivity(userId, name) {
+    currentUserId = userId;
+    currentDaysRange = 1;
+    loadActivityChart();
+}
+
+function loadActivityChart() {
     const snapshots = activityData.snapshots || [];
     const daysRange = currentDaysRange;
     const cutoffDate = new Date();
@@ -243,21 +259,25 @@ function showActivity(userId, name) {
     for (const snapshot of snapshots) {
         const snapshotDate = parseUTC(snapshot.timestamp);
         if (snapshotDate < cutoffDate) continue;
-        if (snapshot.members[userId]) {
+        if (snapshot.members[currentUserId]) {
             memberActivity.push({
                 timestamp: snapshot.timestamp,
-                ...snapshot.members[userId]
+                ...snapshot.members[currentUserId]
             });
         }
     }
     
     memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
     
+    if (memberActivity.length === 0) {
+        document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
+        return;
+    }
+    
     renderActivityChart(memberActivity);
     renderActivityTimeline(memberActivity);
     renderDateRangeInput();
     
-    document.getElementById('memberName').textContent = name;
     document.getElementById('activityDetail').classList.remove('hidden');
 }
 
@@ -265,32 +285,50 @@ function renderActivityChart(memberActivity) {
     const labels = [];
     const data = [];
     
-    if (memberActivity.length === 0) {
-        document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available</p>';
-        return;
+    // -----------------------------------
+    // BUILD CALENDAR FROM EARLIEST TO LATEST
+    // -----------------------------------
+    
+    const startDate = parseUTC(memberActivity[0].timestamp);
+    const endDate = parseUTC(memberActivity[memberActivity.length - 1].timestamp);
+    
+    // Start at midnight of the earliest date
+    const calendarStart = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate(), 0, 0, 0));
+    
+    // End at 23:45 of the latest date
+    const calendarEnd = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 45, 0));
+    
+    // Create map of activity by 15-min interval
+    const activityMap = {};
+    for (const activity of memberActivity) {
+        const pollTime = parseUTC(activity.timestamp);
+        const roundedTime = roundDownTo15Minutes(pollTime);
+        const key = roundedTime.getTime();
+        
+        if (!activityMap[key]) {
+            const lastActionTime = new Date(activity.last_action_timestamp * 1000);
+            const timeDiffSeconds = (pollTime - lastActionTime) / 1000;
+            const isOnline = timeDiffSeconds >= 0 && timeDiffSeconds <= 900;
+            
+            activityMap[key] = {
+                time: roundedTime,
+                isOnline: isOnline
+            };
+        }
     }
     
-    // -----------------------------------
-    // BUILD 15-MIN INTERVALS
-    // -----------------------------------
-    
-    for (let i = 0; i < memberActivity.length; i++) {
-        const activity = memberActivity[i];
-        const pollTime = parseUTC(activity.timestamp);
+    // Build chart with only available data points
+    let currentTime = calendarStart;
+    while (currentTime <= calendarEnd) {
+        const key = currentTime.getTime();
         
-        // Round poll time DOWN to nearest 15-minute interval
-        const roundedTime = roundDownTo15Minutes(pollTime);
+        if (activityMap[key]) {
+            labels.push(formatUTCShort(activityMap[key].time));
+            data.push(activityMap[key].isOnline ? 1 : 0);
+        }
         
-        // Convert Unix timestamp (already UTC) to Date
-        const lastActionTime = new Date(activity.last_action_timestamp * 1000);
-        
-        labels.push(formatUTCShort(roundedTime));
-        
-        // User is online if they logged in within ~15 minutes of this poll
-        const timeDiffSeconds = (pollTime - lastActionTime) / 1000;
-        const isOnline = timeDiffSeconds >= 0 && timeDiffSeconds <= 900;
-        
-        data.push(isOnline ? 1 : 0);
+        // Move to next 15-min interval
+        currentTime = new Date(currentTime.getTime() + 15 * 60 * 1000);
     }
     
     const ctx = document.getElementById('activityChart');
@@ -414,37 +452,12 @@ function loadCustomDateRange() {
     const days = parseInt(input);
     
     if (isNaN(days) || days < 1) {
-        alert('Please enter a valid number of days');
+        alert('Please enter a valid number of days (1-60)');
         return;
     }
     
     currentDaysRange = days;
-    
-    const snapshots = activityData.snapshots || [];
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    let memberActivity = [];
-    
-    for (const snapshot of snapshots) {
-        const snapshotDate = parseUTC(snapshot.timestamp);
-        if (snapshotDate < cutoffDate) continue;
-        
-        const userId = Object.keys(document.getElementById('memberName').textContent).length > 0 ? 
-            document.getElementById('activityDetail').getAttribute('data-user-id') : null;
-        
-        if (snapshot.members[userId]) {
-            memberActivity.push({
-                timestamp: snapshot.timestamp,
-                ...snapshot.members[userId]
-            });
-        }
-    }
-    
-    memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
-    
-    renderActivityChart(memberActivity);
-    renderActivityTimeline(memberActivity);
+    loadActivityChart();
 }
 
 function toggleTimeline() {
@@ -462,6 +475,7 @@ function closeActivity() {
         activityChart.destroy();
         activityChart = null;
     }
+    currentUserId = null;
 }
 
 // -----------------------------------
