@@ -140,6 +140,11 @@ class TornActivityTracker:
         
         activity_log["snapshots"].append(snapshot)
         
+        # Store faction name
+        if "faction_name" not in activity_log:
+            faction_name = data.get("name", "Faction")
+            activity_log["faction_name"] = faction_name
+        
         if len(activity_log["snapshots"]) > 2880:
             activity_log["snapshots"] = activity_log["snapshots"][-2880:]
         
