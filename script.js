@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', initializeDashboard);
 // UTILITY - FORMAT UTC TIME
 // -----------------------------------
 
+function parseUTC(isoString) {
+    return new Date(isoString + 'Z');
+}
+
 function formatUTC(date) {
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -52,12 +56,12 @@ function formatUTC(date) {
 }
 
 function formatUTCShort(date) {
-    const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
     const hours = String(date.getUTCHours()).padStart(2, '0');
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
     
-    return `${month} ${day} ${hours}:${minutes}`;
+    return `${month}/${day} ${hours}:${minutes}`;
 }
 
 // -----------------------------------
@@ -92,7 +96,8 @@ function getActivitySummary(days) {
         const memberActivity = [];
         
         for (const snapshot of snapshots) {
-            if (new Date(snapshot.timestamp) < cutoffDate) continue;
+            const snapshotDate = parseUTC(snapshot.timestamp);
+            if (snapshotDate < cutoffDate) continue;
             if (snapshot.members[userId]) {
                 memberActivity.push({
                     timestamp: snapshot.timestamp,
@@ -129,7 +134,7 @@ function getActivitySummary(days) {
 }
 
 function renderStats(summary, snapshots) {
-    const lastPoll = new Date(snapshots[snapshots.length - 1].timestamp);
+    const lastPoll = parseUTC(snapshots[snapshots.length - 1].timestamp);
     const lastPollTime = formatUTC(lastPoll);
     
     const active24h = Object.values(summary).filter(m => {
@@ -139,8 +144,8 @@ function renderStats(summary, snapshots) {
         return minutesAgo < 1440;
     }).length;
     
-    const firstDate = new Date(snapshots[0].timestamp);
-    const lastDate = new Date(snapshots[snapshots.length - 1].timestamp);
+    const firstDate = parseUTC(snapshots[0].timestamp);
+    const lastDate = parseUTC(snapshots[snapshots.length - 1].timestamp);
     const loggedDays = Math.floor((lastDate - firstDate) / (1000 * 60 * 60 * 24)) + 1;
     
     document.querySelector('.summary').innerHTML = `
@@ -236,7 +241,8 @@ function showActivity(userId, name) {
     let memberActivity = [];
     
     for (const snapshot of snapshots) {
-        if (new Date(snapshot.timestamp) < cutoffDate) continue;
+        const snapshotDate = parseUTC(snapshot.timestamp);
+        if (snapshotDate < cutoffDate) continue;
         if (snapshot.members[userId]) {
             memberActivity.push({
                 timestamp: snapshot.timestamp,
@@ -245,7 +251,7 @@ function showActivity(userId, name) {
         }
     }
     
-    memberActivity.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
     
     renderActivityChart(memberActivity);
     renderActivityTimeline(memberActivity);
@@ -269,20 +275,19 @@ function renderActivityChart(memberActivity) {
     
     for (let i = 0; i < memberActivity.length; i++) {
         const activity = memberActivity[i];
-        const pollTimeStr = activity.timestamp;
-        const pollTime = new Date(pollTimeStr);
+        const pollTime = parseUTC(activity.timestamp);
         
         // Round poll time DOWN to nearest 15-minute interval
         const roundedTime = roundDownTo15Minutes(pollTime);
         
-        // Convert Unix timestamp to Date (no timezone conversion needed)
+        // Convert Unix timestamp (already UTC) to Date
         const lastActionTime = new Date(activity.last_action_timestamp * 1000);
         
         labels.push(formatUTCShort(roundedTime));
         
         // User is online if they logged in within ~15 minutes of this poll
-        const timeDiffMinutes = (pollTime - lastActionTime) / (1000 * 60);
-        const isOnline = timeDiffMinutes >= 0 && timeDiffMinutes <= 20;
+        const timeDiffSeconds = (pollTime - lastActionTime) / 1000;
+        const isOnline = timeDiffSeconds >= 0 && timeDiffSeconds <= 900;
         
         data.push(isOnline ? 1 : 0);
     }
@@ -361,22 +366,37 @@ function roundDownTo15Minutes(date) {
 }
 
 function renderActivityTimeline(memberActivity) {
-    let html = '';
+    let html = `
+        <div class="timeline-header" onclick="toggleTimeline()">
+            <span style="color: #ff8c00; cursor: pointer; font-weight: bold;">📋 Poll Details (${memberActivity.length} snapshots)</span>
+        </div>
+        <div class="timeline-content" id="timelineContent">
+    `;
     
     for (const activity of memberActivity.reverse()) {
-        const pollTime = new Date(activity.timestamp);
+        const pollTime = parseUTC(activity.timestamp);
         const utcTime = formatUTC(pollTime);
+        const lastActionTime = new Date(activity.last_action_timestamp * 1000);
+        const lastActionUTC = formatUTC(lastActionTime);
         
         html += `
             <div class="activity-entry">
-                <div class="activity-time">${utcTime} UTC</div>
-                <div class="activity-relative">Last seen: ${activity.last_action_relative}</div>
+                <div class="activity-time">Poll at: ${utcTime} UTC</div>
+                <div class="activity-relative">Last seen from poll: ${activity.last_action_relative}</div>
+                <div class="activity-detail-time">Last action: ${lastActionUTC} UTC</div>
                 <div class="activity-status">Status: ${activity.status}</div>
             </div>
         `;
     }
     
-    document.getElementById('timeline').innerHTML = html || '<div style="color: #888; padding: 20px;">No activity data</div>';
+    html += `</div>`;
+    
+    document.getElementById('timeline').innerHTML = html;
+}
+
+function toggleTimeline() {
+    const content = document.getElementById('timelineContent');
+    content.style.display = content.style.display === 'none' ? 'block' : 'none';
 }
 
 // -----------------------------------
