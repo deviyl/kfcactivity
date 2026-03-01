@@ -10,11 +10,7 @@
 <body>
     <div class="main-wrapper">
         <div class="container">
-            <h1>⚔️ Faction Activity</h1>
-            
-            <div class="controls">
-                <input type="text" id="searchBox" placeholder="Filter by name..." onkeyup="filterMembers()">
-            </div>
+            <h1>⚔️ Faction Activity Tracker</h1>
             
             <div class="summary" id="summary">
                 <div class="faction-card">
@@ -36,6 +32,9 @@
             </div>
             
             <h2 style="margin: 25px 0 15px 0; color: #ff8c00; font-size: 1.1em;">Members</h2>
+            <div class="controls" style="margin-bottom: 15px;">
+                <input type="text" id="searchBox" placeholder="Filter by name..." onkeyup="filterMembers()" style="flex: 0 1 300px;">
+            </div>
             <table class="deadline-table">
                 <thead>
                     <tr>
