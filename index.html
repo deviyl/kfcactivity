@@ -13,14 +13,6 @@
             <h1>⚔️ Faction Activity</h1>
             
             <div class="controls">
-                <label>Time Range:</label>
-                <select id="timeRange" onchange="updateDashboard()">
-                    <option value="1">Last 24 Hours</option>
-                    <option value="7" selected>Last 7 Days</option>
-                    <option value="14">Last 14 Days</option>
-                    <option value="30">Last 30 Days</option>
-                </select>
-                
                 <input type="text" id="searchBox" placeholder="Filter by name..." onkeyup="filterMembers()">
             </div>
             
@@ -67,6 +59,7 @@
                 <div class="activity-chart-container">
                     <canvas id="activityChart"></canvas>
                 </div>
+                <div id="dateRangeContainer"></div>
                 <div class="activity-timeline" id="timeline"></div>
             </div>
             
