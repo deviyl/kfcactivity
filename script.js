@@ -56,6 +56,12 @@ function updateFactionName() {
 // -----------------------------------
 
 function parseUTC(isoString) {
+    // Handle both formats: with and without timezone info
+    // If it already has +00:00 or Z, just parse it directly
+    // Otherwise, add Z to indicate UTC
+    if (isoString.includes('+') || isoString.includes('Z')) {
+        return new Date(isoString);
+    }
     return new Date(isoString + 'Z');
 }
 
@@ -191,7 +197,7 @@ function renderStats(summary, snapshots) {
     `;
     
     document.getElementById('lastUpdated').innerHTML = `Data last updated: ${lastPollTime} TCT | Current TCT: <span id="currentTCT">${formatUTCShort(new Date())} TCT</span>
-                <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh data">🔄</button>`;
+                <span id="refresh-icon" class="refresh-icon" onclick="refreshDashboard()" title="Refresh data">⟳</span>`;
 }
 
 function renderMembers(summary) {
