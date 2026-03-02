@@ -636,6 +636,33 @@ function updateClock() {
 setInterval(updateClock, 1000);
 
 // -----------------------------------
+// AUTO-REFRESH DATA
+// -----------------------------------
+
+function autoRefreshData() {
+    // Check for new data every 2 minutes
+    // Cron runs every 15 min + up to 5 min execution = data ready by ~20 min
+    fetch('data/activity.json?t=' + Date.now())
+        .then(response => response.json())
+        .then(newData => {
+            // Compare timestamps - if newer data exists, reload
+            const currentLastPoll = activityData.snapshots ? 
+                activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
+            const newLastPoll = newData.snapshots ? 
+                newData.snapshots[newData.snapshots.length - 1].timestamp : null;
+            
+            if (newLastPoll && currentLastPoll && newLastPoll !== currentLastPoll) {
+                console.log('New data detected, refreshing...');
+                location.reload();
+            }
+        })
+        .catch(err => console.log('Auto-refresh check failed:', err));
+}
+
+// Auto-check for new data every 2 minutes
+setInterval(autoRefreshData, 2 * 60 * 1000);
+
+// -----------------------------------
 // ACTIVITY CLOSE
 // -----------------------------------
 
