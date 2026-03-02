@@ -254,6 +254,7 @@ function updateStats() {
 function showActivity(userId, name) {
     currentUserId = userId;
     currentDaysRange = 1;
+    chartBaseDate = new Date();
     loadActivityChart();
 }
 
@@ -271,12 +272,17 @@ function loadActivityChart() {
     const cutoffDate = new Date(baseDate);
     cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
     
+    // Extend base date to end of day (23:59:59)
+    const endOfDay = new Date(baseDate);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    endOfDay.setSeconds(endOfDay.getSeconds() - 1);
+    
     let memberActivity = [];
     
     for (const snapshot of snapshots) {
         const snapshotDate = parseUTC(snapshot.timestamp);
         if (snapshotDate < cutoffDate) continue;
-        if (snapshotDate > baseDate) continue;
+        if (snapshotDate > endOfDay) continue;
         if (snapshot.members[currentUserId]) {
             memberActivity.push({
                 timestamp: snapshot.timestamp,
