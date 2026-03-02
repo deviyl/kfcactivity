@@ -504,3 +504,20 @@ th:hover .sort-indicator {
 .deadline-table th[onclick]:hover {
     background: rgba(255, 69, 0, 0.05);
 }
+
+/* Refresh Button */
+.refresh-btn {
+    background: none;
+    border: none;
+    color: #ff8c00;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 8px;
+    transition: color 0.3s, transform 0.3s;
+    vertical-align: middle;
+}
+
+.refresh-btn:hover {
+    color: #ff4500;
+    transform: rotate(180deg);
+}
