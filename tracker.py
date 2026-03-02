@@ -2,7 +2,7 @@
 
 import requests
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import os
 import sys
@@ -89,7 +89,7 @@ class TornActivityTracker:
         
         activity_log = self.load_json(self.activity_file)
         
-        query_time = datetime.now().isoformat()
+        query_time = datetime.now(timezone.utc).isoformat()
         snapshot = {
             "timestamp": query_time,
             "members": {}
