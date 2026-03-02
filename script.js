@@ -191,7 +191,7 @@ function renderStats(summary, snapshots) {
             <div class="score">${loggedDays} days</div>
         </div>
         <div class="faction-card">
-            <div class="faction-name">Last Poll (Currently <span id="pollCurrentTime">${lastPollShort}</span>)</div>
+            <div class="faction-name">Last Poll (Currently <span id="pollCurrentTime">--:--</span>)</div>
             <div class="score" style="font-size: 0.9em;">${lastPollShort} TCT</div>
         </div>
     `;
@@ -618,6 +618,12 @@ function refreshDashboard() {
 function updateClock() {
     const now = new Date();
     const timeStr = formatUTCShort(now);
+    
+    // Update the pollCurrentTime span in the Last Poll card
+    const pollCurrentTimeElement = document.getElementById('pollCurrentTime');
+    if (pollCurrentTimeElement) {
+        pollCurrentTimeElement.textContent = timeStr;
+    }
     
     // Update the currentTCT span in the last-updated section
     const currentTCTElement = document.getElementById('currentTCT');
