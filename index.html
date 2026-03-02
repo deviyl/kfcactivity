@@ -38,9 +38,18 @@
             <table class="deadline-table">
                 <thead>
                     <tr>
-                        <th>Name <button class="sort-btn" onclick="sortMembers('name')">↕</button></th>
-                        <th>Last Seen <button class="sort-btn" onclick="sortMembers('lastSeen')">↕</button></th>
-                        <th>Pings (7d) <button class="sort-btn" onclick="sortMembers('pings')">↕</button></th>
+                        <th onclick="sortMembers('name')" style="cursor: pointer;">
+                            Name 
+                            <span class="sort-indicator" id="sort-name">↕</span>
+                        </th>
+                        <th onclick="sortMembers('lastSeen')" style="cursor: pointer;">
+                            Last Seen 
+                            <span class="sort-indicator" id="sort-lastSeen">↓</span>
+                        </th>
+                        <th onclick="sortMembers('pings')" style="cursor: pointer;">
+                            Pings (7d) 
+                            <span class="sort-indicator" id="sort-pings">↕</span>
+                        </th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
