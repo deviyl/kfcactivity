@@ -96,6 +96,7 @@ function renderDashboard() {
     
     renderStats(summary, snapshots);
     renderMembers(summary);
+    updateSortIndicators();
 }
 
 function getActivitySummary() {
@@ -255,12 +256,34 @@ function sortMembers(field) {
         membersSortAscending = false;
     }
     
+    // Update arrow indicators
+    updateSortIndicators();
+    
     // Re-render the table
     const snapshots = activityData.snapshots || [];
     if (snapshots.length === 0) return;
     
     const summary = getActivitySummary();
     renderMembers(summary);
+}
+
+function updateSortIndicators() {
+    const fields = ['name', 'lastSeen', 'pings'];
+    
+    fields.forEach(field => {
+        const arrow = document.getElementById(`sort-${field}`);
+        if (!arrow) return;
+        
+        if (membersSortField === field) {
+            // This is the active sort field
+            arrow.textContent = membersSortAscending ? '↑' : '↓';
+            arrow.classList.add('active');
+        } else {
+            // Not the active sort field
+            arrow.textContent = '↕';
+            arrow.classList.remove('active');
+        }
+    });
 }
 
 function updateStats() {
