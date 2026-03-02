@@ -115,17 +115,24 @@ function getActivitySummary() {
         if (memberActivity.length > 0) {
             const mostRecent = memberActivity[memberActivity.length - 1];
             // -----------------------------------
-            // PINGS IN LAST 7 DAYS (168 HOURS)
+            // ONLINE PINGS IN LAST 7 DAYS (168 HOURS)
             // -----------------------------------
             
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setHours(sevenDaysAgo.getHours() - 168);
             
-            let pingsLast7Days = 0;
+            let onlinePingsLast7Days = 0;
             for (const activity of memberActivity) {
                 const snapshotDate = parseUTC(activity.timestamp);
-                if (snapshotDate >= sevenDaysAgo) {
-                    pingsLast7Days++;
+                if (snapshotDate < sevenDaysAgo) continue;
+                
+                // Check if user was online at this snapshot
+                const lastActionTime = new Date(activity.last_action_timestamp * 1000);
+                const timeDiffSeconds = (snapshotDate - lastActionTime) / 1000;
+                const wasOnline = timeDiffSeconds >= 0 && timeDiffSeconds <= 900;
+                
+                if (wasOnline) {
+                    onlinePingsLast7Days++;
                 }
             }
             
@@ -135,7 +142,7 @@ function getActivitySummary() {
                 days_in_faction: member.days_in_faction,
                 last_seen_timestamp: mostRecent.last_action_timestamp,
                 last_seen_relative: mostRecent.last_action_relative,
-                pings_last_7_days: pingsLast7Days,
+                pings_last_7_days: onlinePingsLast7Days,
                 total_polls: memberActivity.length
             };
         }
@@ -257,11 +264,11 @@ function loadActivityChart() {
     // -----------------------------------
     
     const now = new Date();
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
     
-    // Set cutoff to start of day
-    cutoffDate.setUTCHours(0, 0, 0, 0);
+    // Go back currentDaysRange-1 days from today
+    const cutoffDate = new Date(today);
+    cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
     
     let memberActivity = [];
     
@@ -326,8 +333,12 @@ function renderActivityChart(memberActivity) {
     }
     
     // Build chart from calendar start to today 23:45
+    const endOfToday = new Date(today);
+    endOfToday.setDate(endOfToday.getDate() + 1);
+    endOfToday.setSeconds(endOfToday.getSeconds() - 1);
+    
     let currentTime = new Date(calendarStart);
-    while (currentTime <= today) {
+    while (currentTime < endOfToday) {
         const key = currentTime.getTime();
         
         if (activityMap[key]) {
