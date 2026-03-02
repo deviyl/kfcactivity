@@ -289,19 +289,25 @@ function loadActivityChart() {
     
     memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
     
-    // Update navigation info
+    // Update navigation info and date range input
     updateNavInfo();
     renderDateRangeInput();
     
-    // Show chart or no-data message
-    const chartContainer = document.getElementById('activityChart').parentElement;
+    // Get elements
+    const noDataMessage = document.getElementById('noDataMessage');
+    const chartContainer = document.getElementById('chartContainer');
+    const timelineContainer = document.getElementById('timeline');
     
+    // Check if we have data
     if (memberActivity.length === 0) {
-        chartContainer.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
-        document.getElementById('timeline').innerHTML = '';
+        // No data - show message, hide chart
+        noDataMessage.style.display = 'block';
+        chartContainer.style.display = 'none';
+        timelineContainer.innerHTML = '';
     } else {
-        // Recreate canvas element
-        chartContainer.innerHTML = '<canvas id="activityChart"></canvas>';
+        // We have data - show chart, hide message
+        noDataMessage.style.display = 'none';
+        chartContainer.style.display = 'block';
         renderActivityChart(memberActivity);
         renderActivityTimeline(memberActivity);
     }
