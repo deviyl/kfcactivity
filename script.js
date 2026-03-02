@@ -196,7 +196,7 @@ function renderStats(summary, snapshots) {
         </div>
     `;
     
-    document.getElementById('lastUpdated').innerHTML = `Data last updated: ${lastPollTime} TCT | Current TCT: <span id="currentTCT">${formatUTCShort(new Date())} TCT</span>
+    document.getElementById('lastUpdated').innerHTML = `Data last updated: ${lastPollTime} TCT | Current TCT: <span id="currentTCT">--:-- TCT</span>
                 <span id="refresh-icon" class="refresh-icon" onclick="refreshDashboard()" title="Refresh data">⟳</span>`;
 }
 
@@ -617,10 +617,12 @@ function refreshDashboard() {
 
 function updateClock() {
     const now = new Date();
-    const timeStr = formatUTCShort(now) + ' TCT';
+    const timeStr = formatUTCShort(now);
+    
+    // Update the currentTCT span in the last-updated section
     const currentTCTElement = document.getElementById('currentTCT');
     if (currentTCTElement) {
-        currentTCTElement.textContent = timeStr;
+        currentTCTElement.textContent = timeStr + ' TCT';
     }
 }
 
