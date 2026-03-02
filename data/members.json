@@ -17,7 +17,7 @@
   "1997029": {
     "name": "Somehomelessmen",
     "level": 50,
-    "days_in_faction": 137
+    "days_in_faction": 138
   },
   "2224014": {
     "name": "Blazebugg",
@@ -192,6 +192,6 @@
   "2154856": {
     "name": "HowieAP",
     "level": 21,
-    "days_in_faction": 0
+    "days_in_faction": 1
   }
 }
