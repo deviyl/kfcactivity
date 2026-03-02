@@ -158,6 +158,7 @@ function getActivitySummary() {
 function renderStats(summary, snapshots) {
     const lastPoll = parseUTC(snapshots[snapshots.length - 1].timestamp);
     const lastPollTime = formatUTC(lastPoll);
+    const lastPollShort = formatUTCShort(lastPoll);
     
     const active24h = Object.values(summary).filter(m => {
         const now = Date.now();
@@ -184,12 +185,13 @@ function renderStats(summary, snapshots) {
             <div class="score">${loggedDays} days</div>
         </div>
         <div class="faction-card">
-            <div class="faction-name">Last Poll</div>
-            <div class="score" style="font-size: 0.9em;">${formatUTCShort(lastPoll)}</div>
+            <div class="faction-name">Last Poll (Currently <span id="pollCurrentTime">${lastPollShort}</span>)</div>
+            <div class="score" style="font-size: 0.9em;">${lastPollShort} TCT</div>
         </div>
     `;
     
-    document.getElementById('lastUpdated').textContent = `Data last updated: ${lastPollTime} UTC`;
+    document.getElementById('lastUpdated').innerHTML = `Data last updated: ${lastPollTime} TCT | Current TCT: <span id="currentTCT">${formatUTCShort(new Date())} TCT</span>
+                <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh data">🔄</button>`;
 }
 
 function renderMembers(summary) {
@@ -588,6 +590,36 @@ function navChartNext() {
     chartBaseDate.setDate(chartBaseDate.getDate() + currentDaysRange);
     loadActivityChart();
 }
+
+// -----------------------------------
+// REFRESH AND CLOCK FUNCTIONS
+// -----------------------------------
+
+function refreshDashboard() {
+    const icon = document.getElementById('refresh-icon');
+    if (icon) {
+        icon.classList.add('spinning');
+        setTimeout(() => {
+            icon.classList.remove('spinning');
+        }, 600);
+    }
+    // Reload the JSON data
+    setTimeout(() => {
+        location.reload();
+    }, 300);
+}
+
+function updateClock() {
+    const now = new Date();
+    const timeStr = formatUTCShort(now) + ' TCT';
+    const currentTCTElement = document.getElementById('currentTCT');
+    if (currentTCTElement) {
+        currentTCTElement.textContent = timeStr;
+    }
+}
+
+// Update clock every second
+setInterval(updateClock, 1000);
 
 // -----------------------------------
 // ACTIVITY CLOSE
