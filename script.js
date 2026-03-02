@@ -114,17 +114,18 @@ function getActivitySummary() {
         
         if (memberActivity.length > 0) {
             const mostRecent = memberActivity[memberActivity.length - 1];
-            const activeDates = new Set();
-            
             // -----------------------------------
-            // DAYS ACTIVE = DISTINCT DAYS IN DATA
+            // PINGS IN LAST 7 DAYS (168 HOURS)
             // -----------------------------------
             
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setHours(sevenDaysAgo.getHours() - 168);
+            
+            let pingsLast7Days = 0;
             for (const activity of memberActivity) {
-                if (activity.last_action_timestamp > 0) {
-                    const date = new Date(activity.last_action_timestamp * 1000);
-                    const dateStr = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-                    activeDates.add(dateStr);
+                const snapshotDate = parseUTC(activity.timestamp);
+                if (snapshotDate >= sevenDaysAgo) {
+                    pingsLast7Days++;
                 }
             }
             
@@ -134,7 +135,7 @@ function getActivitySummary() {
                 days_in_faction: member.days_in_faction,
                 last_seen_timestamp: mostRecent.last_action_timestamp,
                 last_seen_relative: mostRecent.last_action_relative,
-                days_active: activeDates.size,
+                pings_last_7_days: pingsLast7Days,
                 total_polls: memberActivity.length
             };
         }
@@ -205,7 +206,7 @@ function renderMembers(summary) {
             <tr class="member-row" data-user-id="${userId}">
                 <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link"><strong>${data.name}</strong></a></td>
                 <td>${data.last_seen_relative}</td>
-                <td>${data.days_active}</td>
+                <td>${data.pings_last_7_days}</td>
                 <td><span class="status ${statusClass}">${statusText}</span></td>
                 <td><a href="#" class="details-link" onclick="showActivity('${userId}', '${data.name}'); return false;">View</a></td>
             </tr>
@@ -250,9 +251,17 @@ function showActivity(userId, name) {
 
 function loadActivityChart() {
     const snapshots = activityData.snapshots || [];
-    const daysRange = currentDaysRange;
+    
+    // -----------------------------------
+    // BUILD DATE RANGE FROM CALENDAR DAYS
+    // -----------------------------------
+    
+    const now = new Date();
     const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysRange);
+    cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
+    
+    // Set cutoff to start of day
+    cutoffDate.setUTCHours(0, 0, 0, 0);
     
     let memberActivity = [];
     
@@ -286,17 +295,16 @@ function renderActivityChart(memberActivity) {
     const data = [];
     
     // -----------------------------------
-    // BUILD CALENDAR FROM EARLIEST TO LATEST
+    // BUILD CALENDAR FROM FULL CALENDAR DAYS
     // -----------------------------------
     
-    const startDate = parseUTC(memberActivity[0].timestamp);
-    const endDate = parseUTC(memberActivity[memberActivity.length - 1].timestamp);
+    // Start from today going back N days
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
     
-    // Start at midnight of the earliest date
-    const calendarStart = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate(), 0, 0, 0));
-    
-    // End at 23:45 of the latest date
-    const calendarEnd = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate(), 23, 45, 0));
+    // Go back currentDaysRange-1 days (so 1 = today, 2 = today+yesterday, etc)
+    const calendarStart = new Date(today);
+    calendarStart.setDate(calendarStart.getDate() - (currentDaysRange - 1));
     
     // Create map of activity by 15-min interval
     const activityMap = {};
@@ -317,9 +325,9 @@ function renderActivityChart(memberActivity) {
         }
     }
     
-    // Build chart with only available data points
-    let currentTime = calendarStart;
-    while (currentTime <= calendarEnd) {
+    // Build chart from calendar start to today 23:45
+    let currentTime = new Date(calendarStart);
+    while (currentTime <= today) {
         const key = currentTime.getTime();
         
         if (activityMap[key]) {
