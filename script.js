@@ -8,6 +8,8 @@ let activityChart = null;
 let currentDaysRange = 1;
 let currentUserId = null;
 let chartBaseDate = new Date();
+let membersSortField = 'lastSeen';
+let membersSortAscending = false;
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -190,7 +192,26 @@ function renderStats(summary, snapshots) {
 }
 
 function renderMembers(summary) {
-    const sorted = Object.entries(summary).sort((a, b) => b[1].last_seen_timestamp - a[1].last_seen_timestamp);
+    let sorted = Object.entries(summary);
+    
+    // Apply current sort
+    if (membersSortField === 'name') {
+        sorted.sort((a, b) => {
+            const nameA = a[1].name.toLowerCase();
+            const nameB = b[1].name.toLowerCase();
+            return membersSortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+    } else if (membersSortField === 'lastSeen') {
+        sorted.sort((a, b) => {
+            const diff = a[1].last_seen_timestamp - b[1].last_seen_timestamp;
+            return membersSortAscending ? diff : -diff;
+        });
+    } else if (membersSortField === 'pings') {
+        sorted.sort((a, b) => {
+            const diff = a[1].pings_last_7_days - b[1].pings_last_7_days;
+            return membersSortAscending ? diff : -diff;
+        });
+    }
     
     let html = '';
     
@@ -222,6 +243,24 @@ function renderMembers(summary) {
     }
     
     document.getElementById('membersTable').innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #888; padding: 40px;">No members found</td></tr>';
+}
+
+function sortMembers(field) {
+    // If clicking the same field, toggle ascending/descending
+    if (membersSortField === field) {
+        membersSortAscending = !membersSortAscending;
+    } else {
+        // New field - default to descending
+        membersSortField = field;
+        membersSortAscending = false;
+    }
+    
+    // Re-render the table
+    const snapshots = activityData.snapshots || [];
+    if (snapshots.length === 0) return;
+    
+    const summary = getActivitySummary();
+    renderMembers(summary);
 }
 
 function updateStats() {
