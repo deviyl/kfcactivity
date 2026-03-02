@@ -293,17 +293,16 @@ function loadActivityChart() {
     
     memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
     
+    renderDateRangeInput();
+    updateNavInfo();
+    
     if (memberActivity.length === 0) {
         document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
-        renderDateRangeInput();
-        updateNavInfo();
         return;
     }
     
     renderActivityChart(memberActivity);
     renderActivityTimeline(memberActivity);
-    renderDateRangeInput();
-    updateNavInfo();
     
     document.getElementById('activityDetail').classList.remove('hidden');
 }
@@ -311,6 +310,13 @@ function loadActivityChart() {
 function renderActivityChart(memberActivity) {
     const labels = [];
     const data = [];
+    
+    // -----------------------------------
+    // RESTORE CHART CONTAINER
+    // -----------------------------------
+    
+    const chartContainer = document.getElementById('activityChart').parentElement;
+    chartContainer.innerHTML = '<canvas id="activityChart"></canvas>';
     
     // -----------------------------------
     // BUILD CALENDAR FROM FULL CALENDAR DAYS
