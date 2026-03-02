@@ -61,20 +61,23 @@
                 </tbody>
             </table>
             
-            <div id="activityDetail" class="activity-detail hidden">
-                <button class="close-btn" onclick="closeActivity()">✕</button>
-                <h4>Activity Timeline for <span id="memberName"></span></h4>
-                <div id="noDataMessage" class="activity-chart-container" style="display: none; color: #888; padding: 20px; text-align: center; display: flex; align-items: center; justify-content: center;">No activity data available for this period</div>
-                <div class="activity-chart-container" id="chartContainer">
-                    <canvas id="activityChart"></canvas>
+            <div id="activityDetail" class="activity-modal hidden">
+                <div class="modal-overlay" onclick="closeActivity()"></div>
+                <div class="modal-content">
+                    <button class="close-btn" onclick="closeActivity()">✕</button>
+                    <h3>Activity Timeline for <span id="memberName"></span></h3>
+                    <div id="noDataMessage" class="activity-chart-container" style="display: none; color: #888; padding: 20px; text-align: center; display: flex; align-items: center; justify-content: center;">No activity data available for this period</div>
+                    <div class="activity-chart-container" id="chartContainer">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                    <div class="chart-navigation">
+                        <button class="nav-btn" onclick="navChartPrevious()">← Previous</button>
+                        <span class="nav-info" id="navInfo"></span>
+                        <button class="nav-btn" onclick="navChartNext()">Next →</button>
+                    </div>
+                    <div id="dateRangeContainer"></div>
+                    <div class="activity-timeline" id="timeline"></div>
                 </div>
-                <div class="chart-navigation">
-                    <button class="nav-btn" onclick="navChartPrevious()">← Previous</button>
-                    <span class="nav-info" id="navInfo"></span>
-                    <button class="nav-btn" onclick="navChartNext()">Next →</button>
-                </div>
-                <div id="dateRangeContainer"></div>
-                <div class="activity-timeline" id="timeline"></div>
             </div>
             
             <div class="last-updated" id="lastUpdated">
