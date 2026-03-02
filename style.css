@@ -158,6 +158,21 @@ button:hover {
     color: #fff;
 }
 
+.sort-btn {
+    background: none;
+    border: none;
+    color: #ff8c00;
+    cursor: pointer;
+    font-size: 0.8em;
+    padding: 0 4px;
+    transition: color 0.3s;
+    margin-left: 4px;
+}
+
+.sort-btn:hover {
+    color: #ff4500;
+}
+
 .deadline-table {
     width: 100%;
     border-collapse: collapse;
