@@ -38,9 +38,9 @@
             <table class="deadline-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Last Seen</th>
-                        <th>Pings (7d)</th>
+                        <th>Name <button class="sort-btn" onclick="sortMembers('name')">↕</button></th>
+                        <th>Last Seen <button class="sort-btn" onclick="sortMembers('lastSeen')">↕</button></th>
+                        <th>Pings (7d) <button class="sort-btn" onclick="sortMembers('pings')">↕</button></th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -55,7 +55,7 @@
             <div id="activityDetail" class="activity-detail hidden">
                 <button class="close-btn" onclick="closeActivity()">✕</button>
                 <h4>Activity Timeline for <span id="memberName"></span></h4>
-                <div id="noDataMessage" style="display: none; color: #888; padding: 20px; text-align: center;">No activity data available for this period</div>
+                <div id="noDataMessage" class="activity-chart-container" style="display: none; color: #888; padding: 20px; text-align: center; display: flex; align-items: center; justify-content: center;">No activity data available for this period</div>
                 <div class="activity-chart-container" id="chartContainer">
                     <canvas id="activityChart"></canvas>
                 </div>
