@@ -261,10 +261,6 @@ function showActivity(userId, name) {
 function loadActivityChart() {
     const snapshots = activityData.snapshots || [];
     
-    // -----------------------------------
-    // BUILD DATE RANGE FROM CALENDAR DAYS
-    // -----------------------------------
-    
     // Set base date to midnight UTC
     const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate(), 0, 0, 0));
     
@@ -272,13 +268,13 @@ function loadActivityChart() {
     const cutoffDate = new Date(baseDate);
     cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
     
-    // Extend base date to end of day (23:59:59)
+    // Extend base date to end of day
     const endOfDay = new Date(baseDate);
     endOfDay.setDate(endOfDay.getDate() + 1);
     endOfDay.setSeconds(endOfDay.getSeconds() - 1);
     
+    // Collect member activity for this date range
     let memberActivity = [];
-    
     for (const snapshot of snapshots) {
         const snapshotDate = parseUTC(snapshot.timestamp);
         if (snapshotDate < cutoffDate) continue;
@@ -293,39 +289,49 @@ function loadActivityChart() {
     
     memberActivity.sort((a, b) => parseUTC(a.timestamp) - parseUTC(b.timestamp));
     
-    renderDateRangeInput();
+    // Update navigation info
     updateNavInfo();
+    renderDateRangeInput();
     
+    // Show chart or no-data message
     if (memberActivity.length === 0) {
         document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
-        return;
+        document.getElementById('timeline').innerHTML = '';
+    } else {
+        renderActivityChart(memberActivity);
+        renderActivityTimeline(memberActivity);
     }
     
-    renderActivityChart(memberActivity);
-    renderActivityTimeline(memberActivity);
-    
     document.getElementById('activityDetail').classList.remove('hidden');
+}
+
+function updateNavInfo() {
+    const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate()));
+    const startDate = new Date(baseDate);
+    startDate.setDate(startDate.getDate() - (currentDaysRange - 1));
+    
+    const formatDate = (date) => {
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${month}/${day}`;
+    };
+    
+    const navInfo = document.getElementById('navInfo');
+    if (currentDaysRange === 1) {
+        navInfo.textContent = formatDate(baseDate);
+    } else {
+        navInfo.textContent = `${formatDate(startDate)} to ${formatDate(baseDate)}`;
+    }
 }
 
 function renderActivityChart(memberActivity) {
     const labels = [];
     const data = [];
     
-    // -----------------------------------
-    // RESTORE CHART CONTAINER
-    // -----------------------------------
-    
-    const chartContainer = document.getElementById('activityChart').parentElement;
-    chartContainer.innerHTML = '<canvas id="activityChart"></canvas>';
-    
-    // -----------------------------------
-    // BUILD CALENDAR FROM FULL CALENDAR DAYS
-    // -----------------------------------
-    
     // Set base date to midnight UTC
     const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate(), 0, 0, 0));
     
-    // Go back currentDaysRange-1 days (so 1 = today, 2 = today+yesterday, etc)
+    // Go back currentDaysRange-1 days
     const calendarStart = new Date(baseDate);
     calendarStart.setDate(calendarStart.getDate() - (currentDaysRange - 1));
     
@@ -499,25 +505,6 @@ function loadCustomDateRange() {
 function toggleTimeline() {
     const content = document.getElementById('timelineContent');
     content.style.display = content.style.display === 'none' ? 'block' : 'none';
-}
-
-function updateNavInfo() {
-    const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate()));
-    const startDate = new Date(baseDate);
-    startDate.setDate(startDate.getDate() - (currentDaysRange - 1));
-    
-    const formatDate = (date) => {
-        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(date.getUTCDate()).padStart(2, '0');
-        return `${month}/${day}`;
-    };
-    
-    const navInfo = document.getElementById('navInfo');
-    if (currentDaysRange === 1) {
-        navInfo.textContent = formatDate(baseDate);
-    } else {
-        navInfo.textContent = `${formatDate(startDate)} to ${formatDate(baseDate)}`;
-    }
 }
 
 function navChartPrevious() {
