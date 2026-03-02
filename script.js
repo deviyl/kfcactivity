@@ -7,6 +7,7 @@ let membersData = {};
 let activityChart = null;
 let currentDaysRange = 1;
 let currentUserId = null;
+let chartBaseDate = new Date();
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -263,11 +264,11 @@ function loadActivityChart() {
     // BUILD DATE RANGE FROM CALENDAR DAYS
     // -----------------------------------
     
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+    // Set base date to midnight UTC
+    const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate(), 0, 0, 0));
     
-    // Go back currentDaysRange-1 days from today
-    const cutoffDate = new Date(today);
+    // Go back currentDaysRange-1 days from base date
+    const cutoffDate = new Date(baseDate);
     cutoffDate.setDate(cutoffDate.getDate() - (currentDaysRange - 1));
     
     let memberActivity = [];
@@ -275,6 +276,7 @@ function loadActivityChart() {
     for (const snapshot of snapshots) {
         const snapshotDate = parseUTC(snapshot.timestamp);
         if (snapshotDate < cutoffDate) continue;
+        if (snapshotDate > baseDate) continue;
         if (snapshot.members[currentUserId]) {
             memberActivity.push({
                 timestamp: snapshot.timestamp,
@@ -287,12 +289,15 @@ function loadActivityChart() {
     
     if (memberActivity.length === 0) {
         document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
+        renderDateRangeInput();
+        updateNavInfo();
         return;
     }
     
     renderActivityChart(memberActivity);
     renderActivityTimeline(memberActivity);
     renderDateRangeInput();
+    updateNavInfo();
     
     document.getElementById('activityDetail').classList.remove('hidden');
 }
@@ -305,12 +310,11 @@ function renderActivityChart(memberActivity) {
     // BUILD CALENDAR FROM FULL CALENDAR DAYS
     // -----------------------------------
     
-    // Start from today going back N days
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+    // Set base date to midnight UTC
+    const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate(), 0, 0, 0));
     
     // Go back currentDaysRange-1 days (so 1 = today, 2 = today+yesterday, etc)
-    const calendarStart = new Date(today);
+    const calendarStart = new Date(baseDate);
     calendarStart.setDate(calendarStart.getDate() - (currentDaysRange - 1));
     
     // Create map of activity by 15-min interval
@@ -332,13 +336,13 @@ function renderActivityChart(memberActivity) {
         }
     }
     
-    // Build chart from calendar start to today 23:45
-    const endOfToday = new Date(today);
-    endOfToday.setDate(endOfToday.getDate() + 1);
-    endOfToday.setSeconds(endOfToday.getSeconds() - 1);
+    // Build chart from calendar start to base date 23:45
+    const endOfDay = new Date(baseDate);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    endOfDay.setSeconds(endOfDay.getSeconds() - 1);
     
     let currentTime = new Date(calendarStart);
-    while (currentTime < endOfToday) {
+    while (currentTime < endOfDay) {
         const key = currentTime.getTime();
         
         if (activityMap[key]) {
@@ -476,12 +480,42 @@ function loadCustomDateRange() {
     }
     
     currentDaysRange = days;
+    chartBaseDate = new Date();
     loadActivityChart();
 }
 
 function toggleTimeline() {
     const content = document.getElementById('timelineContent');
     content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateNavInfo() {
+    const baseDate = new Date(Date.UTC(chartBaseDate.getUTCFullYear(), chartBaseDate.getUTCMonth(), chartBaseDate.getUTCDate()));
+    const startDate = new Date(baseDate);
+    startDate.setDate(startDate.getDate() - (currentDaysRange - 1));
+    
+    const formatDate = (date) => {
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${month}/${day}`;
+    };
+    
+    const navInfo = document.getElementById('navInfo');
+    if (currentDaysRange === 1) {
+        navInfo.textContent = formatDate(baseDate);
+    } else {
+        navInfo.textContent = `${formatDate(startDate)} to ${formatDate(baseDate)}`;
+    }
+}
+
+function navChartPrevious() {
+    chartBaseDate.setDate(chartBaseDate.getDate() - currentDaysRange);
+    loadActivityChart();
+}
+
+function navChartNext() {
+    chartBaseDate.setDate(chartBaseDate.getDate() + currentDaysRange);
+    loadActivityChart();
 }
 
 // -----------------------------------
@@ -495,6 +529,7 @@ function closeActivity() {
         activityChart = null;
     }
     currentUserId = null;
+    chartBaseDate = new Date();
 }
 
 // -----------------------------------
