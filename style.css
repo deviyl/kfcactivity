@@ -549,3 +549,86 @@ th:hover .sort-indicator {
         transform: rotate(360deg);
     }
 }
+
+/* Modal Popup Styles */
+.activity-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.activity-modal.hidden {
+    display: none !important;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.modal-content {
+    position: relative;
+    background: #1a0a0a;
+    border: 1px solid #441111;
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.modal-content h3 {
+    color: #ff8c00;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+}
+
+.modal-content .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #ff4500;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.3s;
+}
+
+.modal-content .close-btn:hover {
+    color: #ff8c00;
+}
+
+@media (max-width: 1024px) {
+    .modal-content {
+        max-width: 95%;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+        padding: 15px;
+    }
+    
+    .modal-content h3 {
+        font-size: 1.1em;
+        margin-bottom: 15px;
+    }
+}
