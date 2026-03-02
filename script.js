@@ -294,10 +294,14 @@ function loadActivityChart() {
     renderDateRangeInput();
     
     // Show chart or no-data message
+    const chartContainer = document.getElementById('activityChart').parentElement;
+    
     if (memberActivity.length === 0) {
-        document.getElementById('activityChart').parentElement.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
+        chartContainer.innerHTML = '<p style="color: #888; padding: 20px;">No activity data available for this period</p>';
         document.getElementById('timeline').innerHTML = '';
     } else {
+        // Recreate canvas element
+        chartContainer.innerHTML = '<canvas id="activityChart"></canvas>';
         renderActivityChart(memberActivity);
         renderActivityTimeline(memberActivity);
     }
