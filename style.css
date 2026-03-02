@@ -158,6 +158,21 @@ button:hover {
     color: #fff;
 }
 
+.sort-indicator {
+    color: #666;
+    font-size: 0.8em;
+    margin-left: 4px;
+    transition: color 0.3s;
+}
+
+.sort-indicator.active {
+    color: #ff4500;
+}
+
+th:hover .sort-indicator {
+    color: #ff8c00;
+}
+
 .sort-btn {
     background: none;
     border: none;
@@ -171,6 +186,22 @@ button:hover {
 
 .sort-btn:hover {
     color: #ff4500;
+}
+
+.sort-indicator {
+    color: #ff8c00;
+    font-size: 0.85em;
+    margin-left: 4px;
+    transition: color 0.3s;
+}
+
+.deadline-table th {
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.deadline-table th:hover {
+    background: rgba(255, 69, 0, 0.1);
 }
 
 .deadline-table {
@@ -450,4 +481,26 @@ button:hover {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #ff8c00;
+}
+
+/* Sort Indicator Styles */
+.sort-indicator {
+    color: #666;
+    margin-left: 4px;
+    font-size: 0.9em;
+    transition: color 0.3s;
+}
+
+.sort-indicator.active {
+    color: #ff8c00;
+    font-weight: bold;
+}
+
+.deadline-table th[onclick] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.deadline-table th[onclick]:hover {
+    background: rgba(255, 69, 0, 0.05);
 }
