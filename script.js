@@ -22,6 +22,8 @@ async function initializeDashboard() {
         
         if (activityResponse.ok) {
             activityData = await activityResponse.json();
+            const lastPoll = activityData.snapshots ? activityData.snapshots[activityData.snapshots.length - 1].timestamp : 'unknown';
+            console.log('Activity data loaded. Last poll:', lastPoll);
         } else {
             console.warn('No activity data found');
         }
@@ -660,7 +662,8 @@ function autoRefreshData() {
         .catch(err => console.log('Auto-refresh check failed:', err));
 }
 
-// Auto-check for new data every 2 minutes
+// Run first check after 30 seconds, then every 2 minutes
+setTimeout(autoRefreshData, 30 * 1000);
 setInterval(autoRefreshData, 2 * 60 * 1000);
 
 // -----------------------------------
