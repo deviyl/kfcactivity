@@ -325,6 +325,7 @@ function showActivity(userId, name) {
     currentUserId = userId;
     currentDaysRange = 1;
     chartBaseDate = new Date();
+    document.getElementById('memberName').textContent = name;
     loadActivityChart();
 }
 
