@@ -456,6 +456,10 @@ function renderActivityChart(memberActivity) {
         currentTime = new Date(currentTime.getTime() + 15 * 60 * 1000);
     }
     
+    // Calculate online count
+    const onlineCount = data.reduce((sum, value) => sum + (value === 1 ? 1 : 0), 0);
+    document.getElementById('onlineCount').textContent = `Online Count: ${onlineCount}`;
+    
     const ctx = document.getElementById('activityChart');
     
     if (activityChart) {
