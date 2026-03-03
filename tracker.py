@@ -124,13 +124,6 @@ class TornActivityTracker:
                 "status": status
             }
             
-            # -----------------------------------
-            # RATE LIMITING DELAY
-            # -----------------------------------
-            
-            if index < total_members - 1:
-                time.sleep(3)
-        
         # -----------------------------------
         # DATA PERSISTENCE
         # -----------------------------------
@@ -140,10 +133,13 @@ class TornActivityTracker:
         
         activity_log["snapshots"].append(snapshot)
         
-        # Store faction name
+        # Store faction name and capacity
         if "faction_name" not in activity_log:
             faction_name = data.get("name", "Faction")
             activity_log["faction_name"] = faction_name
+        
+        capacity = data.get("capacity", 0)
+        activity_log["faction_capacity"] = capacity
         
         if len(activity_log["snapshots"]) > 2880:
             activity_log["snapshots"] = activity_log["snapshots"][-2880:]
