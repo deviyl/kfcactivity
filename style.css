@@ -632,3 +632,11 @@ th:hover .sort-indicator {
         margin-bottom: 15px;
     }
 }
+
+/* Currently Time Styling */
+.currently-time {
+    color: #ff8c00;
+    font-size: 0.75em;
+    margin-top: 5px;
+    font-weight: normal;
+}
