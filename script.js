@@ -178,11 +178,12 @@ function renderStats(summary, snapshots) {
     const firstDate = parseUTC(snapshots[0].timestamp);
     const lastDate = parseUTC(snapshots[snapshots.length - 1].timestamp);
     const loggedDays = Math.floor((lastDate - firstDate) / (1000 * 60 * 60 * 24)) + 1;
+    const capacity = activityData.faction_capacity || 0;
     
     document.querySelector('.summary').innerHTML = `
         <div class="faction-card">
             <div class="faction-name">Total Members</div>
-            <div class="score">${Object.keys(summary).length}</div>
+            <div class="score">${Object.keys(summary).length}/${capacity}</div>
         </div>
         <div class="faction-card">
             <div class="faction-name">Active (24h)</div>
@@ -212,6 +213,11 @@ function renderMembers(summary) {
             const nameA = a[1].name.toLowerCase();
             const nameB = b[1].name.toLowerCase();
             return membersSortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+    } else if (membersSortField === 'daysInFaction') {
+        sorted.sort((a, b) => {
+            const diff = a[1].days_in_faction - b[1].days_in_faction;
+            return membersSortAscending ? diff : -diff;
         });
     } else if (membersSortField === 'lastSeen') {
         sorted.sort((a, b) => {
@@ -244,12 +250,12 @@ function renderMembers(summary) {
         }
         
         html += `
-            <tr class="member-row" data-user-id="${userId}">
-                <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link"><strong>${data.name}</strong></a></td>
+            <tr class="member-row" data-user-id="${userId}" onclick="showActivity('${userId}', '${data.name}')" style="cursor: pointer;">
+                <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link" onclick="event.stopPropagation();"><strong>${data.name}</strong></a></td>
+                <td>${data.days_in_faction}</td>
                 <td>${data.last_seen_relative}</td>
                 <td>${data.pings_last_7_days}</td>
                 <td><span class="status ${statusClass}">${statusText}</span></td>
-                <td><a href="#" class="details-link" onclick="showActivity('${userId}', '${data.name}'); return false;">View</a></td>
             </tr>
         `;
     }
@@ -279,7 +285,7 @@ function sortMembers(field) {
 }
 
 function updateSortIndicators() {
-    const fields = ['name', 'lastSeen', 'pings'];
+    const fields = ['name', 'daysInFaction', 'lastSeen', 'pings'];
     
     fields.forEach(field => {
         const arrow = document.getElementById(`sort-${field}`);
