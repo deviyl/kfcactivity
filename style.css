@@ -640,3 +640,12 @@ th:hover .sort-indicator {
     margin-top: 5px;
     font-weight: normal;
 }
+
+/* Online Count Display */
+.online-count {
+    color: #ff8c00;
+    font-size: 0.75em;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
