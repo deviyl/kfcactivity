@@ -43,6 +43,10 @@
                             Name 
                             <span class="sort-indicator" id="sort-name">↕</span>
                         </th>
+                        <th onclick="sortMembers('daysInFaction')" style="cursor: pointer;">
+                            Days 
+                            <span class="sort-indicator" id="sort-daysInFaction">↕</span>
+                        </th>
                         <th onclick="sortMembers('lastSeen')" style="cursor: pointer;">
                             Last Seen 
                             <span class="sort-indicator" id="sort-lastSeen">↓</span>
@@ -52,7 +56,6 @@
                             <span class="sort-indicator" id="sort-pings">↕</span>
                         </th>
                         <th>Status</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="membersTable">
