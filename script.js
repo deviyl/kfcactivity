@@ -193,8 +193,9 @@ function renderStats(summary, snapshots) {
             <div class="score">${loggedDays} days</div>
         </div>
         <div class="faction-card">
-            <div class="faction-name">Last Poll (Currently <span id="pollCurrentTime">--:--</span>)</div>
+            <div class="faction-name">Last Poll</div>
             <div class="score" style="font-size: 0.9em;">${lastPollShort} TCT</div>
+            <div class="currently-time">Currently <span id="pollCurrentTime">--:--</span></div>
         </div>
     `;
     
@@ -649,25 +650,34 @@ function autoRefreshData() {
     fetch('data/activity.json?t=' + Date.now())
         .then(response => {
             console.log('Fetch response status:', response.status);
-            return response.json();
+            if (!response.ok) {
+                throw new Error('Response not ok: ' + response.status);
+            }
+            return response.text();
         })
-        .then(newData => {
-            console.log('New data fetched. Snapshots count:', newData.snapshots ? newData.snapshots.length : 'none');
-            
-            // Compare timestamps - if newer data exists, reload
-            const currentLastPoll = activityData.snapshots ? 
-                activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
-            const newLastPoll = newData.snapshots ? 
-                newData.snapshots[newData.snapshots.length - 1].timestamp : null;
-            
-            console.log('Current last poll:', currentLastPoll);
-            console.log('New last poll:', newLastPoll);
-            
-            if (newLastPoll && currentLastPoll && newLastPoll !== currentLastPoll) {
-                console.log('NEW DATA DETECTED! Reloading page...');
-                location.reload();
-            } else {
-                console.log('No new data. Still on same poll:', currentLastPoll);
+        .then(text => {
+            console.log('Raw response length:', text.length, 'bytes');
+            try {
+                const newData = JSON.parse(text);
+                console.log('JSON parsed successfully. Snapshots count:', newData.snapshots ? newData.snapshots.length : 'none');
+                
+                // Compare timestamps - if newer data exists, reload
+                const currentLastPoll = activityData.snapshots ? 
+                    activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
+                const newLastPoll = newData.snapshots ? 
+                    newData.snapshots[newData.snapshots.length - 1].timestamp : null;
+                
+                console.log('Current last poll:', currentLastPoll);
+                console.log('New last poll:', newLastPoll);
+                
+                if (newLastPoll && currentLastPoll && newLastPoll !== currentLastPoll) {
+                    console.log('NEW DATA DETECTED! Reloading page...');
+                    location.reload();
+                } else {
+                    console.log('No new data. Still on same poll:', currentLastPoll);
+                }
+            } catch (parseErr) {
+                console.error('JSON parse error:', parseErr);
             }
         })
         .catch(err => console.error('Auto-refresh check FAILED:', err));
