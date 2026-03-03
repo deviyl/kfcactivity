@@ -643,28 +643,46 @@ setInterval(updateClock, 1000);
 // -----------------------------------
 
 function autoRefreshData() {
+    console.log('AUTO-REFRESH CHECK at', new Date().toLocaleTimeString());
+    
     // Check for new data every 2 minutes
-    // Cron runs every 15 min + up to 5 min execution = data ready by ~20 min
     fetch('data/activity.json?t=' + Date.now())
-        .then(response => response.json())
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            return response.json();
+        })
         .then(newData => {
+            console.log('New data fetched. Snapshots count:', newData.snapshots ? newData.snapshots.length : 'none');
+            
             // Compare timestamps - if newer data exists, reload
             const currentLastPoll = activityData.snapshots ? 
                 activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
             const newLastPoll = newData.snapshots ? 
                 newData.snapshots[newData.snapshots.length - 1].timestamp : null;
             
+            console.log('Current last poll:', currentLastPoll);
+            console.log('New last poll:', newLastPoll);
+            
             if (newLastPoll && currentLastPoll && newLastPoll !== currentLastPoll) {
-                console.log('New data detected, refreshing...');
+                console.log('NEW DATA DETECTED! Reloading page...');
                 location.reload();
+            } else {
+                console.log('No new data. Still on same poll:', currentLastPoll);
             }
         })
-        .catch(err => console.log('Auto-refresh check failed:', err));
+        .catch(err => console.error('Auto-refresh check FAILED:', err));
 }
 
 // Run first check after 30 seconds, then every 2 minutes
-setTimeout(autoRefreshData, 30 * 1000);
-setInterval(autoRefreshData, 2 * 60 * 1000);
+console.log('Setting up auto-refresh checks...');
+setTimeout(() => {
+    console.log('FIRST AUTO-REFRESH CHECK (30 second delay)');
+    autoRefreshData();
+}, 30 * 1000);
+
+setInterval(() => {
+    autoRefreshData();
+}, 2 * 60 * 1000);
 
 // -----------------------------------
 // ACTIVITY CLOSE
