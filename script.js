@@ -254,7 +254,7 @@ function renderMembers(summary) {
                 <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link" onclick="event.stopPropagation();"><strong>${data.name}</strong></a></td>
                 <td>${data.days_in_faction}</td>
                 <td>${data.last_seen_relative}</td>
-                <td>${data.pings_last_7_days}</td>
+                <td class="${data.pings_last_7_days >= 100 ? 'pings-excellent' : ''}">${data.pings_last_7_days}</td>
                 <td><span class="status ${statusClass}">${statusText}</span></td>
             </tr>
         `;
