@@ -8,8 +8,8 @@ let activityChart = null;
 let currentDaysRange = 1;
 let currentUserId = null;
 let chartBaseDate = new Date();
-let membersSortField = 'lastSeen';
-let membersSortAscending = false;
+let membersSortField = localStorage.getItem('membersSortField') || 'lastSeen';
+let membersSortAscending = localStorage.getItem('membersSortAscending') === 'true';
 
 // -----------------------------------
 // INITIALIZATION ON PAGE LOAD
@@ -272,6 +272,10 @@ function sortMembers(field) {
         membersSortField = field;
         membersSortAscending = false;
     }
+    
+    // Save preferences to localStorage
+    localStorage.setItem('membersSortField', membersSortField);
+    localStorage.setItem('membersSortAscending', membersSortAscending);
     
     // Update arrow indicators
     updateSortIndicators();
