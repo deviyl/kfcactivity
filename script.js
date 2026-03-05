@@ -2,6 +2,9 @@
 // DATA INITIALIZATION
 // -----------------------------------
 
+// Configuration
+const ACTIVITY_SCORE_THRESHOLD = 112; // Highlight members with this many or more online pings in 7 days
+
 let activityData = {};
 let membersData = {};
 let activityChart = null;
@@ -155,6 +158,7 @@ function getActivitySummary() {
                 last_seen_timestamp: mostRecent.last_action_timestamp,
                 last_seen_relative: mostRecent.last_action_relative,
                 pings_last_7_days: onlinePingsLast7Days,
+                avg_pings_per_day: Math.round(onlinePingsLast7Days / 7),
                 total_polls: memberActivity.length
             };
         }
@@ -229,6 +233,11 @@ function renderMembers(summary) {
             const diff = a[1].pings_last_7_days - b[1].pings_last_7_days;
             return membersSortAscending ? diff : -diff;
         });
+    } else if (membersSortField === 'avgPerDay') {
+        sorted.sort((a, b) => {
+            const diff = parseFloat(a[1].avg_pings_per_day) - parseFloat(b[1].avg_pings_per_day);
+            return membersSortAscending ? diff : -diff;
+        });
     }
     
     let html = '';
@@ -254,7 +263,8 @@ function renderMembers(summary) {
                 <td><a href="https://www.torn.com/profiles.php?XID=${userId}" target="_blank" class="member-link" onclick="event.stopPropagation();"><strong>${data.name}</strong></a></td>
                 <td>${data.days_in_faction}</td>
                 <td>${data.last_seen_relative}</td>
-                <td class="${data.pings_last_7_days >= 100 ? 'pings-excellent' : ''}">${data.pings_last_7_days}</td>
+                <td class="${data.pings_last_7_days >= ACTIVITY_SCORE_THRESHOLD ? 'pings-excellent' : ''}">${data.pings_last_7_days}</td>
+                <td>${data.avg_pings_per_day}</td>
                 <td><span class="status ${statusClass}">${statusText}</span></td>
             </tr>
         `;
@@ -289,7 +299,7 @@ function sortMembers(field) {
 }
 
 function updateSortIndicators() {
-    const fields = ['name', 'daysInFaction', 'lastSeen', 'pings'];
+    const fields = ['name', 'daysInFaction', 'lastSeen', 'pings', 'avgPerDay'];
     
     fields.forEach(field => {
         const arrow = document.getElementById(`sort-${field}`);
