@@ -194,7 +194,7 @@ function renderStats(summary, snapshots) {
             <div class="score">${loggedDays} days</div>
         </div>
         <div class="faction-card">
-            <div class="faction-name">Last Poll</div>
+            <div class="faction-name">Last Poll <span id="refresh-icon-poll" class="refresh-icon" onclick="manualRefresh()" title="Refresh data now">⟳</span></div>
             <div class="score" style="font-size: 0.9em;">${lastPollShort} TCT</div>
             <div class="currently-time">Currently <span id="pollCurrentTime">--:--</span></div>
         </div>
@@ -615,6 +615,42 @@ function navChartNext() {
 // REFRESH AND CLOCK FUNCTIONS
 // -----------------------------------
 
+function manualRefresh() {
+    const icon = document.getElementById('refresh-icon-poll');
+    if (icon) {
+        icon.classList.add('spinning');
+    }
+    
+    // Fetch latest data
+    fetch('data/activity.json?t=' + Date.now())
+        .then(response => response.text())
+        .then(text => {
+            try {
+                const newData = JSON.parse(text);
+                const currentLastPoll = activityData.snapshots ? 
+                    activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
+                const newLastPoll = newData.snapshots ? 
+                    newData.snapshots[newData.snapshots.length - 1].timestamp : null;
+                
+                if (newLastPoll && newLastPoll !== currentLastPoll) {
+                    console.log('Manual refresh: New data detected! Updating...');
+                    activityData = newData;
+                    renderDashboard();
+                } else {
+                    console.log('Manual refresh: No new data available');
+                }
+            } catch (err) {
+                console.error('Manual refresh error:', err);
+            }
+        })
+        .catch(err => console.error('Manual refresh failed:', err))
+        .finally(() => {
+            if (icon) {
+                icon.classList.remove('spinning');
+            }
+        });
+}
+
 function refreshDashboard() {
     const icon = document.getElementById('refresh-icon');
     if (icon) {
@@ -623,7 +659,7 @@ function refreshDashboard() {
             icon.classList.remove('spinning');
         }, 600);
     }
-    // Reload the JSON data
+    // Reload the page
     setTimeout(() => {
         location.reload();
     }, 300);
@@ -656,7 +692,7 @@ setInterval(updateClock, 1000);
 function autoRefreshData() {
     console.log('AUTO-REFRESH CHECK at', new Date().toLocaleTimeString());
     
-    // Check for new data every 2 minutes
+    // Check for new data every 15 minutes
     fetch('data/activity.json?t=' + Date.now())
         .then(response => {
             console.log('Fetch response status:', response.status);
@@ -671,7 +707,7 @@ function autoRefreshData() {
                 const newData = JSON.parse(text);
                 console.log('JSON parsed successfully. Snapshots count:', newData.snapshots ? newData.snapshots.length : 'none');
                 
-                // Compare timestamps - if newer data exists, reload
+                // Compare timestamps - if newer data exists, update in-memory
                 const currentLastPoll = activityData.snapshots ? 
                     activityData.snapshots[activityData.snapshots.length - 1].timestamp : null;
                 const newLastPoll = newData.snapshots ? 
@@ -681,8 +717,10 @@ function autoRefreshData() {
                 console.log('New last poll:', newLastPoll);
                 
                 if (newLastPoll && currentLastPoll && newLastPoll !== currentLastPoll) {
-                    console.log('NEW DATA DETECTED! Reloading page...');
-                    location.reload();
+                    console.log('NEW DATA DETECTED! Updating in-memory data...');
+                    activityData = newData;
+                    renderDashboard();
+                    console.log('Dashboard updated');
                 } else {
                     console.log('No new data. Still on same poll:', currentLastPoll);
                 }
@@ -693,7 +731,7 @@ function autoRefreshData() {
         .catch(err => console.error('Auto-refresh check FAILED:', err));
 }
 
-// Run first check after 30 seconds, then every 2 minutes
+// Run first check after 30 seconds, then every 15 minutes
 console.log('Setting up auto-refresh checks...');
 setTimeout(() => {
     console.log('FIRST AUTO-REFRESH CHECK (30 second delay)');
@@ -702,7 +740,7 @@ setTimeout(() => {
 
 setInterval(() => {
     autoRefreshData();
-}, 2 * 60 * 1000);
+}, 15 * 60 * 1000);
 
 // -----------------------------------
 // ACTIVITY CLOSE
