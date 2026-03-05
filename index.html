@@ -55,12 +55,16 @@
                             Activity Score (7d) 
                             <span class="sort-indicator" id="sort-pings">↕</span>
                         </th>
+                        <th onclick="sortMembers('avgPerDay')" style="cursor: pointer;">
+                            Avg/Day 
+                            <span class="sort-indicator" id="sort-avgPerDay">↕</span>
+                        </th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="membersTable">
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #888; padding: 40px;">Loading data...</td>
+                        <td colspan="6" style="text-align: center; color: #888; padding: 40px;">Loading data...</td>
                     </tr>
                 </tbody>
             </table>
