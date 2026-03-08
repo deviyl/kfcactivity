@@ -132,7 +132,7 @@
   "3712127": {
     "name": "caits",
     "level": 26,
-    "days_in_faction": 122
+    "days_in_faction": 123
   },
   "3722358": {
     "name": "Deviyl",
@@ -202,6 +202,6 @@
   "4123983": {
     "name": "LuoZane",
     "level": 9,
-    "days_in_faction": 2
+    "days_in_faction": 3
   }
 }
