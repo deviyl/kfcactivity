@@ -203,5 +203,10 @@
     "name": "LuoZane",
     "level": 10,
     "days_in_faction": 4
+  },
+  "2741991": {
+    "name": "MrNoggins",
+    "level": 100,
+    "days_in_faction": 399
   }
 }
