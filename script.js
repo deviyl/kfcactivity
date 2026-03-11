@@ -134,7 +134,7 @@ function getActivitySummary() {
             // -----------------------------------
             
             const sevenDaysAgo = new Date();
-            sevenDaysAgo.setHours(sevenDaysAgo.getHours() - 168);
+            sevenDaysAgo.setUTCHours(sevenDaysAgo.getUTCHours() - 168);
             
             let onlinePingsLast7Days = 0;
             for (const activity of memberActivity) {
