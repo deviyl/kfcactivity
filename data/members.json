@@ -147,7 +147,7 @@
   "3774090": {
     "name": "Jereos",
     "level": 45,
-    "days_in_faction": 239
+    "days_in_faction": 240
   },
   "3793607": {
     "name": "MADSCOTBASTARD",
@@ -217,6 +217,6 @@
   "4074605": {
     "name": "PrimoMontana",
     "level": 16,
-    "days_in_faction": 0
+    "days_in_faction": 1
   }
 }
